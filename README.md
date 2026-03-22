@@ -103,7 +103,6 @@ traycer/
 │       ├── routes/         Express routers (chat, sessions, artifacts, settings, github, maintenance)
 │       ├── middleware/     Auth, security (CORS, Helmet), stream limiter
 │       └── utils/          Encryption, SSE helpers, env loading
-├── architecture/           Design documents (Epic Brief, Core Flows, Tech Plan)
 └── package.json            Workspace root with dev/build/start scripts
 ```
 
