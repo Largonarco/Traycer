@@ -48,10 +48,15 @@ GITHUB_CLIENT_ID=<your client id>
 GITHUB_CLIENT_SECRET=<your client secret>
 GITHUB_REDIRECT_URI=http://localhost:3000/auth/github/callback
 
-# PostgreSQL (defaults match the Docker command above)
+# PostgreSQL (docker)
 DATABASE_URL=postgresql://postgres:postgres@localhost:5432/traycer
+# PostgreSQL (local)
+PG_PORT=5432
+PG_USER=
+PG_HOST=localhost
+PG_DATABASE=
+PG_PASSWORD=
 
-# Optional — defaults shown
 PORT=3000
 FRONTEND_URL=http://localhost:5173
 ```
