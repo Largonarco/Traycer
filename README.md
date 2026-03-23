@@ -28,7 +28,7 @@ docker run -d --name traycer-pg \
 
 **Homebrew** (macOS):
 ```sh
-brew install postgresql@16
+brew install postgresql@17
 brew services start postgresql@17
 createdb traycer
 ```
