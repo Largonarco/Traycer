@@ -8,5 +8,5 @@ const __dirname = path.dirname(__filename);
 // Load .env (in-order)
 // 1. Project Root
 // 2. Backend Directory
+dotenv.config({ path: path.resolve(__dirname, "../../../.env") });
 dotenv.config({ path: path.resolve(__dirname, "../../.env") });
-dotenv.config({ path: path.resolve(__dirname, "../.env") });
