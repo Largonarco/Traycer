@@ -193,7 +193,7 @@ The backend is built for multi-user, multi-session deployment — not just local
 |---|---------|---------|:-:|
 | 1 | `/trigger` | Analyze the user's request, explore codebase, gather requirements | No |
 | 2 | `/prd` | Generate a Product Requirements Document | Yes (spec) |
-| 3 | `/flows` | Generate a Core Flows document | Yes (spec) |
+| 3 | `/flows` | Generate a Flows document | Yes (spec) |
 | 4 | `/validate_prd` | Review PRD + Flows for completeness and gaps | No (edits existing) |
 | 5 | `/tech_plan` | Generate a Technical Plan with architecture and data models | Yes (spec) |
 | 6 | `/validate_architecture` | Stress-test technical architecture for soundness | No (edits existing) |

@@ -1,18 +1,34 @@
 import pg from "pg";
 
-// BIGINT type parser
-// By default node-pg returns BIGINT (OID 20) as strings. Our application
-// stores timestamps and github_id as BIGINT but the TypeScript types expect
-// `number`. Since our values fit safely within Number.MAX_SAFE_INTEGER we
-// override the parser to return numbers directly.
-pg.types.setTypeParser(20, (val: string) => parseInt(val, 10));
+// BIGINT Type Parser — Application Pool Scope Only
+function parseBigInt(val: string): number {
+  const num = Number(val);
+  if (!Number.isSafeInteger(num)) {
+    console.warn(
+      `[db] BIGINT value ${val} exceeds Number.MAX_SAFE_INTEGER — precision may be lost`
+    );
+  }
+
+  return num;
+}
+
+// Build per-pool TypeOverrides Instance
+function buildPoolTypes(): pg.CustomTypesConfig {
+  const types = new pg.TypeOverrides();
+
+  types.setTypeParser(20, parseBigInt);
+
+  return types;
+}
 
 // Configuration
 // Supports both DATABASE_URL (production) & PG_* vars (development)
 function getPoolConfig(): pg.PoolConfig {
+  const types = buildPoolTypes();
   const databaseUrl = process.env.DATABASE_URL;
   if (databaseUrl) {
     return {
+      types,
       connectionString: databaseUrl,
       max: parseInt(process.env.PG_POOL_MAX || "20", 10),
       idleTimeoutMillis: 30000,
@@ -22,6 +38,7 @@ function getPoolConfig(): pg.PoolConfig {
   }
 
   return {
+    types,
     idleTimeoutMillis: 30000,
     connectionTimeoutMillis: 5000,
     user: process.env.PG_USER || "postgres",

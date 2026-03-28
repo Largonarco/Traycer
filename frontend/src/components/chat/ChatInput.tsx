@@ -20,6 +20,8 @@ export function ChatInput() {
   const appendMessage = useMessageStore((s) => s.appendMessage)
   const updateMessageType = useMessageStore((s) => s.updateMessageType)
   const setPendingInterrupt = useUIStore((s) => s.setPendingInterrupt)
+  const pendingCommandInsert = useUIStore((s) => s.pendingCommandInsert)
+  const clearPendingCommandInsert = useUIStore((s) => s.clearPendingCommandInsert)
 
   const [input, setInput] = useState('')
   const [slashQuery, setSlashQuery] = useState('')
@@ -59,20 +61,13 @@ export function ChatInput() {
     [setSlashMenuOpen]
   )
 
-  const insertCommand = useCallback(
-    (command: string) => {
-      setInput(command + ' ')
-      inputRef.current?.focus()
-    },
-    []
-  )
-
   useEffect(() => {
-    (window as unknown as Record<string, unknown>).__chatInsertCommand = insertCommand
-    return () => {
-      delete (window as unknown as Record<string, unknown>).__chatInsertCommand
+    if (pendingCommandInsert) {
+      setInput(pendingCommandInsert + ' ')
+      clearPendingCommandInsert()
+      inputRef.current?.focus()
     }
-  }, [insertCommand])
+  }, [pendingCommandInsert, clearPendingCommandInsert])
 
   const handleSend = useCallback(async () => {
     const trimmed = input.trim()

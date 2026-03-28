@@ -2,6 +2,7 @@ import { Router } from "express";
 import type { Request, Response } from "express";
 import type { MessageType } from "../db/types.js";
 import { decryptSettings } from "../utils/decrypt.js";
+import type { SyncMessageInput } from "../db/index.js";
 import { createCentralAgent } from "../agent/index.js";
 import { AnswersPayloadSchema } from "../agent/schemas.js";
 import { hasPendingInterrupt } from "../agent/utils/qa.js";
@@ -25,7 +26,6 @@ import {
   updateMessageType,
   listMessagesBySession,
 } from "../db/index.js";
-import type { SyncMessageInput } from "../db/index.js";
 
 const VALID_ROLES: ReadonlySet<string> = new Set([
   "user",
@@ -40,8 +40,8 @@ const VALID_MESSAGE_TYPES: ReadonlySet<string> = new Set([
   "qa_cancelled",
   "artifact_ref",
   "qa_questions",
-  "next_step_nudge",
   "agent_activity",
+  "next_step_nudge",
 ]);
 
 const router = Router();

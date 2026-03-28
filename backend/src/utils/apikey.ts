@@ -8,6 +8,12 @@ export function maskKey(raw: string): string {
   return "••••••••";
 }
 
+/**
+ * Validates an API key by making a lightweight test call to the provider.
+ *
+ * For OpenAI: GET /v1/models — returns 200 if the key is valid.
+ * For Anthropic: POST /v1/messages with minimal payload — a valid key
+ */
 export async function validateApiKey(
   provider: AIProvider,
   apiKey: string
@@ -32,12 +38,12 @@ export async function validateApiKey(
         },
         body: JSON.stringify({
           max_tokens: 1,
-          model: "claude-3-haiku-20240307",
+          model: "claude-3-5-haiku-latest",
           messages: [{ role: "user", content: "hi" }],
         }),
       });
 
-      return response.status !== 401 && response.status !== 403;
+      return response.status === 200 || response.status === 400;
     }
     return false;
   } catch {

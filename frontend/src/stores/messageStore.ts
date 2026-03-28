@@ -1,6 +1,10 @@
 import { create } from 'zustand'
 import type { Message } from '@/lib/api'
 import { messagesApi } from '@/lib/api'
+import { SLASH_COMMANDS } from '@/lib/commands'
+
+// Set of valid slash command names for O(1) lookup
+const VALID_COMMANDS = new Set(SLASH_COMMANDS.map((c) => c.name))
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -276,7 +280,7 @@ export const useMessageStore = create<MessageStore>((set, get) => ({
       const msg = messages[i]
       if (msg.role === 'user' && msg.type === 'text') {
         const command = msg.content.trim().split(/\s/)[0]
-        if (command.startsWith('/')) {
+        if (VALID_COMMANDS.has(command)) {
           return command
         }
       }

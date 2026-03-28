@@ -1,6 +1,6 @@
 ---
 name: flows
-description: "COMMAND: /flows — Generate a Core Flows document that maps out the key user journeys and system interactions for a feature. This skill MUST be activated when the user sends a message starting with /flows. It produces a Core Flows artifact detailing step-by-step user journeys, interaction patterns, and UI flows based on an existing PRD. Follows /prd in the workflow."
+description: "COMMAND: /flows — Generate a Core Flows document that maps out the key user journeys and system interactions for a feature. This skill MUST be activated when the user sends a message starting with /flows. It produces a Core Flows artifact detailing step-by-step user journeys, interaction patterns, and UI flows based on an existing PRD. This is step 3 of 9 in the workflow, following /prd."
 metadata:
   command: /flows
   produces_artifact: true
@@ -10,6 +10,9 @@ metadata:
   next_command: /validate_prd
 allowed-tools:
   - codebase-explorer
+  - artifact-editor
+  - ask_clarification_questions
+  - read_artifact
 ---
 
 # Generate Core Flows
@@ -54,7 +57,7 @@ Before drafting any artifact:
 
 ## Processing User Request
 
-1. Internalize and understand what the user is trying to accomplish on a product level. Read and internalize the Epic Brief file to understand the problem and its background at hand.
+1. Internalize and understand what the user is trying to accomplish on a product level. Read and internalize the PRD file to understand the problem and its background at hand.
 2. Given the background information, explore map out and visualize the current flows in the product. Explore the codebase to concretely understand the current interaction surface area, user journeys, and user actions.
 3. Think hard about the UX design decisions. These are not about visual aesthetics, but about interaction design and user experience architecture. Think about the following dimensions/ directions:
   Information Hierarchy:
@@ -105,11 +108,15 @@ Before drafting any artifact:
 
 &nbsp;
 
-## Output Format
+## Output Format Instructions
 
-<!-- TODO: Define the expected output format -->
+When generating the actual artifact using the `artifact-editor` tool, pay strict attention that you draft the artifact professionaly like a report, conversational messages have no place in the actual artifact content. Other than the actual artifact content used in the `artifact-editor` tool, no format is enforced.
+
+## Workflow Order Note
+
+The command sequence (trigger → prd → flows → validate_prd → tech_plan → validate_architecture → ticket_breakdown → validate_artifact → revise_requirements) is the **intended** order, not a strict gate. The user is always in control — they can run any command at any time, skip steps, re-run earlier steps, or jump ahead. Always execute the requested command without complaint, then gently suggest the typical next step as a recommendation.
 
 ## Workflow Context
 
-- **Previous step:** `/prd` — Generate Product Requirements Document
-- **Next step:** `/validate_prd` — Review PRD & Flows for gaps
+- **Previous step:** `/prd` — Generate Product Requirements Document (recommended)
+- **Next step:** `/validate_prd` — Review PRD & Core Flows for gaps (recommended)

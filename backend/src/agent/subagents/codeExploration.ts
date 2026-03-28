@@ -271,7 +271,7 @@ export function createExplorationSubAgent(
     description:
       `Explores the GitHub repository ${githubRepo} to gather codebase context. ` +
       `Use this subagent when starting a fresh analysis from scratch or when the context needed for any analysis is weak or incomplete. ` +
-      `read source files, or search for specific code patterns. ` +
+      `Explore the file tree, read source files, or search for specific code patterns. ` +
       `The subagent will return a summary of relevant codebase context.`,
     systemPrompt: `You are a codebase exploration agent for the GitHub repository "${githubRepo}".
 

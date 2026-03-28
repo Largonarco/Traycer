@@ -5,8 +5,8 @@ import {
   getArtifactById,
   getCurrentVersion,
   createArtifactVersion,
-  listArtifactsBySession,
 } from "../../db/index.js";
+import { createReadArtifactTool } from "../tools/artifact.js";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 interface DiffPatch {
@@ -23,83 +23,6 @@ interface ApplyResult {
 }
 
 // ─── Tool Factories ─────────────────────────────────────────────────────────
-/**
- * Creates a `read_artifact` tool for the diff subagent.
- *
- * Allows the subagent to read the current content of any artifact in the
- * session, which is essential for:
- * - Understanding the current state before applying edits
- * - Verifying edits after they've been applied
- * - Listing available artifacts to determine the correct target
- */
-function createReadArtifactTool(sessionId: string) {
-  return tool(
-    async ({ artifactId }: { artifactId?: string }) => {
-      // List mode
-      if (!artifactId) {
-        const artifacts = await listArtifactsBySession(sessionId);
-        if (artifacts.length === 0) {
-          return "No artifacts found in this session.";
-        }
-
-        const lines: string[] = [];
-        for (const a of artifacts) {
-          const version = await getCurrentVersion(a.id);
-          const versionInfo = version
-            ? `v${version.version_number}, ${version.content.length} chars`
-            : "no versions";
-          lines.push(`- **${a.name}** (id: \`${a.id}\`, type: ${a.type}, ${versionInfo})`);
-        }
-
-        return `Artifacts in this session:\n${lines.join("\n")}\n\nUse read_artifact with a specific artifactId to read its content.`;
-      }
-
-      // Read mode
-      const artifact = await getArtifactById(artifactId);
-      if (!artifact) {
-        return `Error: Artifact "${artifactId}" not found.`;
-      }
-
-      const currentVersion = await getCurrentVersion(artifactId);
-      if (!currentVersion) {
-        return `Artifact "${artifact.name}" exists but has no content yet.`;
-      }
-
-      // Return Line Numbers - Precise Editing
-      const lines = currentVersion.content.split("\n");
-      const numberedLines = lines.map(
-        (line, i) => `${String(i + 1).padStart(5, " ")} | ${line}`
-      );
-
-      return [
-        `ID: ${artifact.id}`,
-        `Type: ${artifact.type}`,
-        `Artifact: ${artifact.name}`,
-        `Total lines: ${lines.length}`,
-        `Version: ${currentVersion.version_number}`,
-        `Total chars: ${currentVersion.content.length}`,
-        `${"─".repeat(60)}`,
-        ...numberedLines,
-      ].join("\n");
-    },
-    {
-      name: "read_artifact",
-      description:
-        "Read the current content of an artifact. " +
-        "Call with no arguments to list all artifacts and their IDs. " +
-        "Call with an artifactId to read the full content with line numbers. " +
-        "ALWAYS read the artifact before attempting edits to ensure your search strings are exact.",
-      schema: z.object({
-        artifactId: z
-          .string()
-          .optional()
-          .describe(
-            "ID of the artifact to read. Omit to list all artifacts."
-          ),
-      }),
-    }
-  );
-}
 
 /**
  * Creates an `apply_diff` tool for the diff subagent.
@@ -341,9 +264,8 @@ export function createDiffWriterSubAgent(sessionId: string): SubAgent {
       "search/replace diffs or full content writes. Delegate to this subagent whenever you " +
       "need to create, update, or revise any artifact content. Provide it with: (1) the " +
       "artifact ID to edit, (2) a clear description of the changes to make, and (3) the " +
-      "actual content for a detailed artifact without just giving vague instructions and " +
-      "to let the subagent draft the actual artifact content. The subagent will read the current " +
-      "artifact, apply the edits, and verify the result.",
+      "actual content for a detailed artifact without just giving vague instructions to the subagent. " +
+      "The subagent will read the current artifact, apply the edits, and verify the result.",
     systemPrompt: DIFF_WRITER_SYSTEM_PROMPT,
     tools: [readArtifact, applyDiff, writeArtifact],
   };

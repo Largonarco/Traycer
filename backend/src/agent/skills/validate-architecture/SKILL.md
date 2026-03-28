@@ -1,16 +1,18 @@
 ---
 name: validate-architecture
-description: "COMMAND: /validate_architecture — Review and validate the technical architecture across all specification documents (PRD, Core Flows, and Technical Plan). Activated when the user sends a message starting with /validate_architecture. Stress-tests critical architectural decisions for robustness, simplicity, flexibility, and codebase fit. Can edit PRD, Flows, and Tech Plan to resolve issues found during review."
+description: "COMMAND: /validate_architecture — Review and validate the technical architecture across all specification documents (PRD, Core Flows, and Technical Plan). Activated when the user sends a message starting with /validate_architecture. Stress-tests critical architectural decisions for robustness, simplicity, flexibility, and codebase fit. Can edit PRD, Core Flows, and Tech Plan to resolve issues found during review. This is step 6 of 9 in the workflow, following /tech_plan."
 metadata:
   command: /validate_architecture
   produces_artifact: false
   artifact_type: null
-  can_edit_artifacts: [PRD, Flows, Tech Plan]
+  can_edit_artifacts: [PRD, Core Flows, Tech Plan]
   workflow_order: 6
   next_command: /ticket_breakdown
 allowed-tools:
   - codebase-explorer
   - artifact-editor
+  - ask_clarification_questions
+  - read_artifact
 ---
 
 # Validate Architecture
@@ -92,7 +94,7 @@ Evaluate the Tech Plan against these six dimensions:
 
 ### 6. Consistency with Requirements
 
-- Does the architecture address what Epic Brief and Core Flows require?
+- Does the architecture address what PRD and Core Flows require?
 - Are critical requirements covered by technical approaches?
 - Are there gaps between what's required and what's designed?
 - Do non-functional requirements have corresponding solutions?
@@ -101,7 +103,7 @@ Evaluate the Tech Plan against these six dimensions:
 
 1. **Gather Context**
   Read and internalize the relevant artifacts:
-  - Epic Brief (the requirements authority)
+  - PRD (the requirements authority)
   - Core Flows (the user journeys)
   - Tech Plan (the architecture being validated)
   - Existing codebase patterns (the reality we're building in)
@@ -109,7 +111,7 @@ Evaluate the Tech Plan against these six dimensions:
   Before deep analysis, verify the Tech Plan addresses foundational areas.
    Evaluate each area qualitatively-not "is this documented?" but "is this adequately addressed?"
    **Requirements Coverage**
-  - Do core functional requirements from the Epic Brief have technical approaches?
+  - Do core functional requirements from the PRD have technical approaches?
   - Do the main user flows from Core Flows have architectural coverage?
   - Have critical edge cases and failure scenarios been acknowledged?
   - Have required external integrations been identified with clear approaches?
@@ -150,7 +152,7 @@ Evaluate the Tech Plan against these six dimensions:
    When evaluating, categorize issues by importance to guide clarification priority:
    *Most Important* - Address first:
   - Will cause major rework if not addressed
-  - Violates Epic Brief requirements
+  - Violates PRD requirements
   - Fundamental robustness gap (no recovery from failures)
   - Security vulnerabilities
    *Significant* - Address before proceeding:
@@ -193,17 +195,15 @@ Evaluate the Tech Plan against these six dimensions:
 - Agreed-upon changes have been made to the Tech Plan
 - Architecture is confirmed ready for ticket breakdown
 
-## Output Format
+## Output Format Instructions
 
-<!-- TODO: Define the expected output format -->
-<!-- Suggested: A structured validation report covering: -->
-<!-- - Consistency check results across all three specs -->
-<!-- - Architectural soundness assessment -->
-<!-- - List of issues found with severity ratings -->
-<!-- - Changes made to existing artifacts (if any) -->
-<!-- - Recommendations for proceeding to ticket breakdown -->
+When editing artifacts using the `artifact-editor` tool, pay strict attention that you edit the artifact professionaly like a report, conversational messages have no place in the actual artifact content. Other than the actual artifact content used in the `artifact-editor` tool, no format is enforced.
+
+## Workflow Order Note
+
+The command sequence (trigger → prd → flows → validate_prd → tech_plan → validate_architecture → ticket_breakdown → validate_artifact → revise_requirements) is the **intended** order, not a strict gate. The user is always in control — they can run any command at any time, skip steps, re-run earlier steps, or jump ahead. Always execute the requested command without complaint, then gently suggest the typical next step as a recommendation.
 
 ## Workflow Context
 
-- **Previous step:** `/tech_plan` — Generate Technical Plan
-- **Next step:** `/ticket_breakdown` — Break plan into implementation tickets
+- **Previous step:** `/tech_plan` — Generate Technical Plan (recommended)
+- **Next step:** `/ticket_breakdown` — Break plan into separate implementation tickets (recommended)

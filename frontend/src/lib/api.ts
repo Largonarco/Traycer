@@ -70,7 +70,6 @@ async function refreshAccessToken(): Promise<boolean> {
 }
 
 // ─── Fetch Helpers ──────────────────────────────────────────────────────────
-
 async function fetchJSON<T>(url: string, options?: RequestInit): Promise<T> {
   const res = await fetch(url, {
     ...options,
@@ -104,6 +103,9 @@ async function fetchJSON<T>(url: string, options?: RequestInit): Promise<T> {
         const body = await retryRes.json().catch(() => ({ error: retryRes.statusText }))
         throw new Error(body.error || `HTTP ${retryRes.status}`)
       }
+      if (retryRes.status === 204) {
+        return undefined as unknown as T
+      }
       return retryRes.json()
     }
 
@@ -116,6 +118,9 @@ async function fetchJSON<T>(url: string, options?: RequestInit): Promise<T> {
   if (!res.ok) {
     const body = await res.json().catch(() => ({ error: res.statusText }))
     throw new Error(body.error || `HTTP ${res.status}`)
+  }
+  if (res.status === 204) {
+    return undefined as unknown as T
   }
   return res.json()
 }

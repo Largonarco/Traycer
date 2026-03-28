@@ -1,23 +1,25 @@
 ---
 name: validate-prd
-description: "COMMAND: /validate_prd — Review and validate the PRD (Epic Brief) and Core Flows documents for completeness, consistency, and gaps. Activate this skill when the user sends a message starting with /validate_prd. This is step 4 of the workflow, used after both the PRD and Flows have been generated, to ensure they align and cover all requirements before proceeding to technical planning with /tech_plan."
+description: "COMMAND: /validate_prd — Review and validate the PRD and Core Flows documents for completeness, consistency, and gaps. Activate this skill when the user sends a message starting with /validate_prd. This is step 4 of 9 in the workflow, following /flows, used after both the PRD and Core Flows have been generated, to ensure they align and cover all requirements before proceeding to technical planning with /tech_plan."
 metadata:
   command: /validate_prd
   produces_artifact: false
   artifact_type: null
-  can_edit_artifacts: [PRD, Flows]
+  can_edit_artifacts: [PRD, Core Flows]
   workflow_order: 4
   next_command: /tech_plan
 allowed-tools:
   - codebase-explorer
   - artifact-editor
+  - ask_clarification_questions
+  - read_artifact
 ---
 
-# Validate PRD & Flows
+# Validate PRD & Core Flows
 
 ## Overview
 
-Analyzes the existing PRD and Core Flows documents to identify gaps, inconsistencies, missing edge cases, and alignment issues between the two artifacts. Can directly edit both the PRD and Flows to address discovered issues.
+Analyzes the existing PRD and Core Flows documents to identify gaps, inconsistencies, missing edge cases, and alignment issues between the two artifacts. Can directly edit both the PRD and Core Flows to address discovered issues.
 
 ## Instructions
 
@@ -75,7 +77,7 @@ Evaluate the specs against these three dimensions:
 
 1. **Gather Context**
   Read and internalize the artifacts:
-  - Epic Brief (the vision and scope)
+  - PRD (the vision and scope)
   - Core Flows (the user journeys)
 2. **Evaluate Requirements**
   For each focus area, assess qualitatively-not "is this documented?" but "is this clear and actionable?"
@@ -89,7 +91,7 @@ Evaluate the specs against these three dimensions:
    Multiple rounds of clarification is normal and encouraged-don't rush. The goal is shared understanding.
 4. **Update Specs Based on Clarification**
   As issues are resolved through clarification:
-  - Update the Epic Brief with missing information
+  - Update the PRD with missing information
   - Refine or expand Core Flows as needed
   - Keep changes targeted-don't rewrite unnecessarily
 5. **Confirm Readiness**
@@ -103,15 +105,19 @@ Evaluate the specs against these three dimensions:
 
 - All focus areas have been evaluated against existing specs
 - Gaps and ambiguities have been identified and resolved through clarification
-- Original documents (Epic Brief, Core Flows) have been updated with agreed changes
+- Original documents (PRD, Core Flows) have been updated with agreed changes
 - User confirms the updated specs are complete and accurate
 - Requirements are ready for technical architecture phase
 
-## Output Format
+## Output Format Instructions
 
-<!-- TODO: Define the expected output format -->
+When editing artifacts using the `artifact-editor` tool, pay strict attention that you edit the artifact professionaly like a report, conversational messages have no place in the actual artifact content. Other than the actual artifact content used in the `artifact-editor` tool, no format is enforced.
+
+## Workflow Order Note
+
+The command sequence (trigger → prd → flows → validate_prd → tech_plan → validate_architecture → ticket_breakdown → validate_artifact → revise_requirements) is the **intended** order, not a strict gate. The user is always in control — they can run any command at any time, skip steps, re-run earlier steps, or jump ahead. Always execute the requested command without complaint, then gently suggest the typical next step as a recommendation.
 
 ## Workflow Context
 
-- **Previous step:** `/flows` — Generate Core Flows document
-- **Next step:** `/tech_plan` — Generate Technical Plan
+- **Previous step:** `/flows` — Generate Core Flows document (recommended)
+- **Next step:** `/tech_plan` — Generate Technical Plan (recommended)

@@ -1,6 +1,6 @@
 ---
 name: tech-plan
-description: "COMMAND: /tech_plan — Generate a detailed Technical Plan that defines the architecture, technology choices, data models, API contracts, and implementation strategy. Activated when the user sends a message starting with /tech_plan. This is step 5 of the workflow, after /validate_prd and before /validate_architecture."
+description: "COMMAND: /tech_plan — Generate a detailed Technical Plan that defines the architecture, technology choices, data models, API contracts, and implementation strategy. Activated when the user sends a message starting with /tech_plan. This is step 5 of 9 in the workflow, following /validate_prd."
 metadata:
   command: /tech_plan
   produces_artifact: true
@@ -10,6 +10,9 @@ metadata:
   next_command: /validate_architecture
 allowed-tools:
   - codebase-explorer
+  - artifact-editor
+  - ask_clarification_questions
+  - read_artifact
 ---
 
 # Tech Plan Generation
@@ -59,7 +62,7 @@ Before drafting any artifact:
 
 ## Processing User Request
 
-1. Internalize the problem from the epic brief and core flows. Understand what we're solving and why.
+1. Internalize the problem from the PRD and Core Flows. Understand what we're solving and why.
 2. Analyze the existing codebase thoroughly - architecture patterns, technical constraints, integration points. Ground all recommendations in what you actually observe, not assumptions about how systems typically work.
 3. Think through the high-level design approach before clarifying with the user.
   Thoroughly think through your mental model:  
@@ -122,11 +125,15 @@ Note: Draft only these 3 sections. DO NOT draft any other sections.
 
 &nbsp;
 
-## Output Format
+## Output Format Instructions
 
-<!-- TODO: Define the expected output format -->
+When generating the actual artifact using the `artifact-editor` tool, pay strict attention that you draft the artifact professionaly like a report, conversational messages have no place in the actual artifact content. Other than the actual artifact content used in the `artifact-editor` tool, no format is enforced.
+
+## Workflow Order Note
+
+The command sequence (trigger → prd → flows → validate_prd → tech_plan → validate_architecture → ticket_breakdown → validate_artifact → revise_requirements) is the **intended** order, not a strict gate. The user is always in control — they can run any command at any time, skip steps, re-run earlier steps, or jump ahead. Always execute the requested command without complaint, then gently suggest the typical next step as a recommendation.
 
 ## Workflow Context
 
-- **Previous step:** `/validate_prd`
-- **Next step:** `/validate_architecture`
+- **Previous step:** `/validate_prd` (recommended)
+- **Next step:** `/validate_architecture` (recommended)

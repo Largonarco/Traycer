@@ -47,7 +47,7 @@ const VALIDATE_PRD: CommandDescriptor = {
   name: "/validate_prd",
   producesArtifact: false,
   skillName: "validate-prd",
-  canEditArtifacts: ["PRD", "Flows"],
+  canEditArtifacts: ["PRD", "Core Flows"],
 };
 
 const TICKET_BREAKDOWN: CommandDescriptor = {
@@ -63,7 +63,7 @@ const VALIDATE_ARTIFACT: CommandDescriptor = {
   producesArtifact: false,
   name: "/validate_artifact",
   skillName: "validate-artifact",
-  canEditArtifacts: ["PRD", "Flows", "Tech Plan", "Ticket Breakdown"],
+  canEditArtifacts: ["PRD", "Core Flows", "Tech Plan", "Ticket Breakdown"],
 };
 
 const VALIDATE_ARCHITECTURE: CommandDescriptor = {
@@ -71,7 +71,7 @@ const VALIDATE_ARCHITECTURE: CommandDescriptor = {
   producesArtifact: false,
   name: "/validate_architecture",
   skillName: "validate-architecture",
-  canEditArtifacts: ["PRD", "Flows", "Tech Plan"],
+  canEditArtifacts: ["PRD", "Core Flows", "Tech Plan"],
 };
 
 const REVISE_REQUIREMENTS: CommandDescriptor = {
@@ -79,7 +79,7 @@ const REVISE_REQUIREMENTS: CommandDescriptor = {
   producesArtifact: false,
   name: "/revise_requirements",
   skillName: "revise-requirements",
-  canEditArtifacts: ["PRD", "Flows", "Tech Plan", "Ticket Breakdown"],
+  canEditArtifacts: ["PRD", "Core Flows", "Tech Plan", "Ticket Breakdown"],
 };
 
 // ─── Registry ───────────────────────────────────────────────────────────────

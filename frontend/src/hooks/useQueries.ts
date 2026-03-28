@@ -106,7 +106,6 @@ export function useGitHubStatus() {
 }
 
 export function useGitHubRepos() {
-  const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
   return useQuery({
     queryKey: ['github-repos'],
     queryFn: githubApi.repos,

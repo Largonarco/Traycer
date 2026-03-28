@@ -8,6 +8,7 @@ interface UIStore {
   pendingInterrupt: boolean
   newArtifactId: string | null
   activeProvider: 'openai' | 'anthropic' | null
+  pendingCommandInsert: string | null
   setSettingsOpen: (open: boolean) => void
   setSessionModalOpen: (open: boolean) => void
   setSlashMenuOpen: (open: boolean) => void
@@ -15,6 +16,8 @@ interface UIStore {
   setPendingInterrupt: (pending: boolean) => void
   setNewArtifactId: (id: string | null) => void
   setActiveProvider: (provider: 'openai' | 'anthropic' | null) => void
+  insertCommand: (command: string) => void
+  clearPendingCommandInsert: () => void
 }
 
 export const useUIStore = create<UIStore>((set) => ({
@@ -25,6 +28,7 @@ export const useUIStore = create<UIStore>((set) => ({
   pendingInterrupt: false,
   newArtifactId: null,
   activeProvider: null,
+  pendingCommandInsert: null,
   setSettingsOpen: (open) => set({ settingsOpen: open }),
   setSessionModalOpen: (open) => set({ sessionModalOpen: open }),
   setSlashMenuOpen: (open) => set({ slashMenuOpen: open }),
@@ -32,4 +36,6 @@ export const useUIStore = create<UIStore>((set) => ({
   setPendingInterrupt: (pending) => set({ pendingInterrupt: pending }),
   setNewArtifactId: (id) => set({ newArtifactId: id }),
   setActiveProvider: (provider) => set({ activeProvider: provider }),
+  insertCommand: (command) => set({ pendingCommandInsert: command }),
+  clearPendingCommandInsert: () => set({ pendingCommandInsert: null }),
 }))

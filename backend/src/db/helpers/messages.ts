@@ -95,8 +95,9 @@ export async function syncMessages(
   const client = await pool.connect();
 
   try {
-    await client.query("BEGIN");
     let count = 0;
+
+    await client.query("BEGIN");
     for (const msg of messages) {
       await client.query(
         `INSERT INTO messages (id, session_id, role, type, content, created_at)

@@ -145,7 +145,7 @@ router.post("/:id/versions", async (req, res) => {
     return;
   }
 
-  // Validate optional label against the schema CHECK constraint
+  // Validate Optional Label
   const ALLOWED_LABELS = ["Manual edit", "AI generated", "AI updated"];
   const resolvedLabel = label ?? "Manual edit";
   const isRestoredLabel = /^Restored from v\d+$/.test(resolvedLabel);

@@ -1,23 +1,25 @@
 ---
 name: revise-requirements
-description: "COMMAND: /revise_requirements — Revise existing PRD, Flows, Tech Plan, and Ticket Breakdown artifacts based on new context, feedback, or changed requirements. Activate this skill when the user sends a message starting with /revise_requirements. This skill traces the ripple effects of requirement changes across all previously generated specification artifacts and updates them to maintain consistency."
+description: "COMMAND: /revise_requirements — Revise existing PRD, Core Flows, Tech Plan, and Ticket Breakdown artifacts based on new context, feedback, or changed requirements. Activate this skill when the user sends a message starting with /revise_requirements. This skill traces the ripple effects of requirement changes across all previously generated specification artifacts and updates them to maintain consistency. Although it is listed as step 9 of 9 in the intended workflow order, this command can be run at any point whenever requirements shift — it is not restricted to being the final step."
 metadata:
   command: /revise_requirements
   produces_artifact: false
   artifact_type: null
-  can_edit_artifacts: [PRD, Flows, Tech Plan, Ticket Breakdown]
+  can_edit_artifacts: [PRD, Core Flows, Tech Plan, Ticket Breakdown]
   workflow_order: 9
   next_command: null
 allowed-tools:
   - codebase-explorer
   - artifact-editor
+  - ask_clarification_questions
+  - read_artifact
 ---
 
 # Revise Requirements
 
 ## Overview
 
-Revise and update previously generated artifacts (PRD, Flows, Tech Plan, Ticket Breakdown) based on new context, user feedback, or changed requirements, ensuring consistency is maintained across all affected documents.
+Revise and update previously generated artifacts (PRD, Core Flows, Tech Plan, Ticket Breakdown) based on new context, user feedback, or changed requirements, ensuring consistency is maintained across all affected documents.
 
 ## Instructions
 
@@ -49,9 +51,9 @@ Value system:
 
 ### 1. Internalize Current State
 
-Read and internalize all existing specs and tickets in the epic:
+Read and internalize all existing specs and tickets:
 
-- Epic Brief (problem, context, scope)
+- PRD (problem, context, scope)
 - Core Flows (user journeys, interactions)
 - Tech Plan (architecture, data model, components)
 - Tickets
@@ -66,7 +68,7 @@ The user has provided initial context about what changed. Use interview question
 - What's the user's broader intention behind this change?
 - What does the user think is affected?
 
-Probe gently for the motivations behind the change — understanding the "why" helps assess impact more accurately. But keep this focused; the goal is clarity on the change, not re-justifying the entire epic.
+Probe gently for the motivations behind the change — understanding the "why" helps assess impact more accurately. But keep this focused; the goal is clarity on the change, not re-justifying the entire project.
 
 Multiple rounds of clarification is normal. Don't proceed to impact analysis until the change is precisely understood.
 
@@ -84,7 +86,7 @@ For each spec, assess:
 Be thorough — non-obvious cascading effects are the whole reason this command exists. Think through second-order implications:
 
 - If a flow changes, does the tech plan's component architecture still support it?
-- If a data model changes, do the flows that display that data still make sense?
+- If a data model changes, do the Core Flows that display that data still make sense?
 - If scope shifts, are there flows or technical decisions that are now unnecessary?
 
 ### 4. Present Impact Analysis
@@ -101,7 +103,7 @@ This is a checkpoint — get user agreement on the scope of changes before makin
 
 ### 5. Update Spec
 
-Work through affected specs one at a time, top-down: Epic Brief → Core Flows → Tech Plan. Product decisions inform technical decisions. Complete the full cycle for one spec before moving to the next.
+Work through affected specs one at a time, top-down: PRD → Core Flows → Tech Plan. Product decisions inform technical decisions. Complete the full cycle for one spec before moving to the next.
 
 For the current spec:
 
@@ -110,14 +112,14 @@ For the current spec:
 **Interview for alignment** — surface your proposed changes and any new decision points as interview questions appropriate to the spec type.  
 Multiple rounds of clarification per spec is normal — don't rush to update after one round of answers. Iterate until you have shared understanding on the changes for this spec. Remember that the goal is shared deliberation and alignment of decisions.
 
-  **Epic Brief lens** (PM thinking about problem definition):
+  **PRD lens** (PM thinking about problem definition):
 
 - Has the core problem shifted? Is the "why" still accurate?
 - Has the target audience or who's affected changed?
 - Has scope expanded or contracted? Are the boundaries still right?
-- Are there new constraints or context the brief needs to capture?
+- Are there new constraints or context the PRD needs to capture?
 - Does the summary still accurately represent what we're building?
-  **Core Flows lens** (PM thinking about user experience):
+  **Core Flows lens** (PM thinking about user experience — editing the Core Flows artifact):
 - *Information Hierarchy*: Has what's most critical to the user shifted? Does the grouping and organization of information still make sense?
 - *User Journey*: Do journeys remain coherent end-to-end? Have entry/exit points or transitions changed? Are new flows needed, or existing flows now unnecessary? How do changed flows connect to adjacent unchanged flows?
 - *Placement & Interaction*: Have interaction patterns changed? Does the feature's discoverability and integration with existing UI still hold?
@@ -158,11 +160,17 @@ Once all affected specs are updated:
 - Updated specs don't contradict each other
 - Downstream work re-planning is suggested as a next step
 
-## Output Format
+## Output Format Instructions
 
-<!-- TODO: Define the expected output format -->
+When editing artifacts using the `artifact-editor` tool, pay strict attention that you edit the artifact professionaly like a report, conversational messages have no place in the actual artifact content. Other than the actual artifact content used in the `artifact-editor` tool, no format is enforced.
+
+## Workflow Order Note
+
+The command sequence (trigger → prd → flows → validate_prd → tech_plan → validate_architecture → ticket_breakdown → validate_artifact → revise_requirements) is the **intended** order, not a strict gate. The user is always in control — they can run any command at any time, skip steps, re-run earlier steps, or jump ahead. Always execute the requested command without complaint, then gently suggest the typical next step as a recommendation.
+
+This command in particular is **not restricted to being the final step**. It can and should be used whenever requirements change at any point during the workflow — after /prd, after /flows, after /tech_plan, or at the end. Execute it whenever the user invokes it.
 
 ## Workflow Context
 
-- **Previous step:** `/validate_artifact`
-- **Next step:** None (final step, or loop back to `/validate_prd` for re-validation)
+- **Previous step:** Any — this command can be triggered at any point when requirements change (step 9 of 9 is the typical position, but it is not a requirement)
+- **Next step:** As per user's choice — typically re-run any downstream validation or ticket-breakdown commands to re-align subsequent artifacts

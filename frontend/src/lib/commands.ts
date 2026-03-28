@@ -8,8 +8,8 @@ export interface SlashCommand {
 export const SLASH_COMMANDS: SlashCommand[] = [
   { name: '/trigger', label: 'Trigger', description: 'Analyze request & explore codebase', number: 1 },
   { name: '/prd', label: 'PRD', description: 'Generate Product Requirements Document', number: 2 },
-  { name: '/flows', label: 'Flows', description: 'Generate Core Flows document', number: 3 },
-  { name: '/validate_prd', label: 'Validate PRD', description: 'Review PRD & Flows for gaps', number: 4 },
+  { name: '/flows', label: 'Core Flows', description: 'Generate Core Flows document', number: 3 },
+  { name: '/validate_prd', label: 'Validate PRD', description: 'Review PRD & Core Flows for gaps', number: 4 },
   { name: '/tech_plan', label: 'Tech Plan', description: 'Generate Technical Plan', number: 5 },
   { name: '/validate_architecture', label: 'Validate Architecture', description: 'Review all specs for soundness', number: 6 },
   { name: '/ticket_breakdown', label: 'Ticket Breakdown', description: 'Break plan into implementation tickets', number: 7 },

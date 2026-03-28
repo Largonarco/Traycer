@@ -1,5 +1,6 @@
 import { useCallback } from 'react'
 import { useSessionStore } from '@/stores/sessionStore'
+import { useUIStore } from '@/stores/uiStore'
 import { useSessions } from '@/hooks/useQueries'
 import { MessageList } from '@/components/chat/MessageList'
 import { ChatInput } from '@/components/chat/ChatInput'
@@ -10,11 +11,10 @@ export function ChatPane() {
   const { data: sessions } = useSessions()
   const activeSession = sessions?.find((s) => s.id === activeSessionId)
 
+  const insertCommand = useUIStore((s) => s.insertCommand)
   const handleCommandInsert = useCallback((command: string) => {
-    const fn = (window as unknown as Record<string, unknown>)
-      .__chatInsertCommand as ((cmd: string) => void) | undefined
-    if (fn) fn(command)
-  }, [])
+    insertCommand(command)
+  }, [insertCommand])
 
   return (
     <div className="flex h-full w-full flex-col overflow-hidden border-l border-border bg-card/30">

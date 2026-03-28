@@ -82,8 +82,8 @@ app.get("/api/auth/me", (req, res) => {
     id: user.id,
     email: user.email,
     github_login: user.github_login,
-    github_avatar_url: user.github_avatar_url,
     display_name: user.display_name,
+    github_avatar_url: user.github_avatar_url,
   });
 });
 

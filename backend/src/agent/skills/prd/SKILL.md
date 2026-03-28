@@ -1,6 +1,6 @@
 ---
 name: prd
-description: "COMMAND: /prd — Generate a Product Requirements Document (PRD) from a user request. Activate this skill when the user's message starts with /prd. This skill captures goals, context, user stories, requirements, and success criteria for a feature or product through structured interviewing and clarification."
+description: "COMMAND: /prd — Generate a Product Requirements Document (PRD) from a user request. Activate this skill when the user's message starts with /prd. This skill captures goals, context, user stories, requirements, and success criteria for a feature or product through structured interviewing and clarification. This is step 2 of 9 in the workflow, following /trigger."
 metadata:
   command: /prd
   produces_artifact: true
@@ -10,6 +10,9 @@ metadata:
   next_command: /flows
 allowed-tools:
   - codebase-explorer
+  - artifact-editor
+  - ask_clarification_questions
+  - read_artifact
 ---
 
 # Generate Product Requirements Document
@@ -55,32 +58,32 @@ Before drafting any artifact:
 3. Using the responses from the user, build a better understanding of the user's request and problem.
 4. Ask yourself, if you are completely confident and clear on the product level of what the user demands. If no, present further interview questions to develop a better understanding.
 
-Remember that:
+  Remember that:
+  - The goal is shared understanding, not speed
+  - Don't feel pressured to draft after one round of answers
+  - Multiple rounds of clarification is normal and encouraged
 
-```
-- The goal is shared understanding, not speed
-- Don't feel pressured to draft after one round of answers
-- Multiple rounds of clarification is normal and encouraged
-
-If yes, proceed to point 5.
-```
-
-5. Here's the guideline for creating the Epic Brief spec:
-  - Summary: 3-8 sentences describing what this Epic is about
+  If yes, proceed to point 5.
+5. Here's the guideline for creating the PRD spec:
+  - Summary: 3-8 sentences describing what this PRD is about
   - Context & Problem: Who's affected, where in the product, the current pain
 
-Keep the Epic Brief compact, under 50 lines. No UI flows, UI specifics, or technical design.
+Keep the PRD compact, under 50 lines. No UI flows, UI specifics, or technical design.
 
 ## Acceptance Criteria
 
 - The problem and context are aligned with the user, with all assumptions clarified
-- User confirms the brief captures the core problem and who's affected
+- User confirms the PRD captures the core problem and who's affected
 
-## Output Format
+## Output Format Instructions
 
-<!-- TODO: Define the expected output format -->
+When generating the actual artifact using the `artifact-editor` tool, pay strict attention that you draft the artifact professionaly like a report, conversational messages have no place in the actual artifact content. Other than the actual artifact content used in the `artifact-editor` tool, no format is enforced.
+
+## Workflow Order Note
+
+The command sequence (trigger → prd → flows → validate_prd → tech_plan → validate_architecture → ticket_breakdown → validate_artifact → revise_requirements) is the **intended** order, not a strict gate. The user is always in control — they can run any command at any time, skip steps, re-run earlier steps, or jump ahead. Always execute the requested command without complaint, then gently suggest the typical next step as a recommendation.
 
 ## Workflow Context
 
-- **Previous step:** `/trigger`
-- **Next step:** `/flows`
+- **Previous step:** `/trigger` (recommended)
+- **Next step:** `/flows` (recommended)

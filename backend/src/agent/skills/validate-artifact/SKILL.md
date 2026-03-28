@@ -5,12 +5,14 @@ metadata:
   command: /validate_artifact
   produces_artifact: false
   artifact_type: null
-  can_edit_artifacts: [PRD, Flows, Tech Plan, Ticket Breakdown]
+  can_edit_artifacts: [PRD, Core Flows, Tech Plan, Ticket Breakdown]
   workflow_order: 8
   next_command: /revise_requirements
 allowed-tools:
   - codebase-explorer
   - artifact-editor
+  - ask_clarification_questions
+  - read_artifact
 ---
 
 # Validate Artifact
@@ -42,21 +44,21 @@ Specs are the source of truth — ground those first. Tickets are derivatives �
 
 ### 1. Internalize All Artifacts
 
-Read and internalize the Epic Brief, Core Flows, Tech Plan, and any existing tickets. Build a mental model of how the specs connect — what concepts flow across spec boundaries, where one spec depends on or references another, where assumptions in one spec constrain decisions in another. Tickets provide additional context for the full picture.
+Read and internalize the PRD, Core Flows, Tech Plan, and any existing tickets. Build a mental model of how the specs connect — what concepts flow across spec boundaries, where one spec depends on or references another, where assumptions in one spec constrain decisions in another. Tickets provide additional context for the full picture.
 
 ### 2. Cross-Referential Analysis
 
 Analyze the specs against these dimensions, focusing on the boundaries between them. Tickets can serve as additional signal here — a ticket referencing a concept absent from specs, or implementing a descoped flow, hints at drift worth investigating in the specs themselves.
 
-**Conceptual Consistency** — The same concepts, entities, and terms should be described compatibly across all specs. Watch for terminology drift (same thing, different names) and contradictory characterizations (Brief scopes a feature to admin users, but a Core Flow shows a regular user performing it).
+**Conceptual Consistency** — The same concepts, entities, and terms should be described compatibly across all specs. Watch for terminology drift (same thing, different names) and contradictory characterizations (the PRD scopes a feature to admin users, but a Core Flows document shows a regular user performing it).
 
-**Coverage Traceability** — Trace bidirectionally: requirements in the Brief should have corresponding flows and technical support. Tech decisions should trace back to a requirement. Orphans in either direction — a requirement with no flow, a tech decision solving an unstated problem — are findings.
+**Coverage Traceability** — Trace bidirectionally: requirements in the PRD should have corresponding flows and technical support. Tech decisions should trace back to a requirement. Orphans in either direction — a requirement with no flow, a tech decision solving an unstated problem — are findings.
 
 **Interface Alignment** — Where specs meet, they should agree on the contract. Data that flows reference should exist in the data model. Interactions described in flows should have corresponding components in the Tech Plan. State transitions implied by flows should be architecturally supported.
 
 **Specificity** — Identify areas where a downstream implementation agent would be forced to make a design decision because the spec hand-waves. Vague descriptions, unresolved decision points, placeholder-level content that pushes real decisions to implementation time.
 
-**Assumption Coherence** — Constraints and assumptions stated or implied in one spec shouldn't contradict decisions in another. If the Brief assumes real-time updates but the Tech Plan designs a batch processing approach, that's a finding.
+**Assumption Coherence** — Constraints and assumptions stated or implied in one spec shouldn't contradict decisions in another. If the PRD assumes real-time updates but the Tech Plan designs a batch processing approach, that's a finding.
 
 Categorize findings by significance. Use your judgment — the classification is yours to make based on the nature of each finding.
 
@@ -112,11 +114,15 @@ If the drift is so extensive that the ticket set needs to be reconceived from sc
 
 &nbsp;
 
-## Output Format
+## Output Format Instructions
 
-<!-- TODO: Define the expected output format -->
+When editing artifacts using the `artifact-editor` tool, pay strict attention that you edit the artifact professionaly like a report, conversational messages have no place in the actual artifact content. Other than the actual artifact content used in the `artifact-editor` tool, no format is enforced.
+
+## Workflow Order Note
+
+The command sequence (trigger → prd → flows → validate_prd → tech_plan → validate_architecture → ticket_breakdown → validate_artifact → revise_requirements) is the **intended** order, not a strict gate. The user is always in control — they can run any command at any time, skip steps, re-run earlier steps, or jump ahead. Always execute the requested command without complaint, then gently suggest the typical next step as a recommendation.
 
 ## Workflow Context
 
-- **Previous step:** `/ticket_breakdown`
-- **Next step:** `/revise_requirements` (if issues are found, otherwise workflow is complete)
+- **Previous step:** `/ticket_breakdown` (recommended)
+- **Next step:** `/revise_requirements` — Optional. Only needed if requirements have changed. Mention it as an available next step, not a required one.

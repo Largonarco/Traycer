@@ -115,6 +115,7 @@ export async function updateGitHubToken(
 
 export async function clearLLMKey(userId: string): Promise<Settings> {
   return updateSettings(userId, {
+    provider: null,
     iv: null,
     auth_tag: null,
     encrypted_api_key: null,

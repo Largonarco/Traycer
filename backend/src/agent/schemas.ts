@@ -3,11 +3,11 @@ import { z } from "zod";
 // ─── Q&A Structured Output Schemas ──────────────────────────────────────────
 // Questions
 export const QuestionSchema = z.object({
-  id: z.string().describe("Unique identifier for this question (e.g., 'q1', 'q2')"),
   statement: z.string().describe("The question title/statement shown to the user"),
-  description: z.string().describe("Additional context or explanation for the question"),
   options: z.array(z.string()).describe("List of selectable options for the user"),
+  id: z.string().describe("Unique identifier for this question (e.g., 'q1', 'q2')"),
   multiselect: z.boolean().describe("Whether the user can select multiple options"),
+  description: z.string().describe("Additional context or explanation for the question"),
 });
 
 export const QuestionsPayloadSchema = z.object({

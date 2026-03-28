@@ -85,23 +85,41 @@ export async function createArtifactVersion(
   const id = randomUUID();
   const now = Date.now();
 
-  // Get the next version number
-  const row = await pool.query(
-    `SELECT COALESCE(MAX(version_number), 0) AS max_version
-     FROM artifact_versions
-     WHERE artifact_id = $1`,
-    [artifactId]
-  );
-  const versionNumber = (row.rows[0].max_version as number) + 1;
+  // Atomic Version No. Assignment + Insert
+  const client = await pool.connect();
+  let versionNumber: number;
+  try {
+    await client.query("BEGIN");
 
-  await pool.query(
-    `INSERT INTO artifact_versions (id, artifact_id, version_number, content, label, created_at)
-     VALUES ($1, $2, $3, $4, $5, $6)`,
-    [id, artifactId, versionNumber, content, label, now]
-  );
+    await client.query(
+      `SELECT id FROM artifacts WHERE id = $1 FOR UPDATE`,
+      [artifactId]
+    );
 
-  // Update the parent artifact's updated_at timestamp
-  await pool.query(`UPDATE artifacts SET updated_at = $1 WHERE id = $2`, [now, artifactId]);
+    const row = await client.query(
+      `SELECT COALESCE(MAX(version_number), 0) AS max_version
+       FROM artifact_versions
+       WHERE artifact_id = $1`,
+      [artifactId]
+    );
+    versionNumber = (row.rows[0].max_version as number) + 1;
+
+    await client.query(
+      `INSERT INTO artifact_versions (id, artifact_id, version_number, content, label, created_at)
+       VALUES ($1, $2, $3, $4, $5, $6)`,
+      [id, artifactId, versionNumber, content, label, now]
+    );
+
+    // Update updated_at
+    await client.query(`UPDATE artifacts SET updated_at = $1 WHERE id = $2`, [now, artifactId]);
+
+    await client.query("COMMIT");
+  } catch (err) {
+    await client.query("ROLLBACK");
+    throw err;
+  } finally {
+    client.release();
+  }
 
   return {
     id,
@@ -170,13 +188,51 @@ export async function getArtifactWithCurrentVersion(
 export async function listArtifactsWithCurrentVersionBySession(
   sessionId: string
 ): Promise<ArtifactWithCurrentVersion[]> {
-  const artifacts = await listArtifactsBySession(sessionId);
+  const pool = getPool();
 
-  const results: ArtifactWithCurrentVersion[] = [];
-  for (const artifact of artifacts) {
-    const currentVersion = (await getCurrentVersion(artifact.id)) ?? null;
-    results.push({ ...artifact, current_version: currentVersion });
-  }
+  const result = await pool.query(
+    `SELECT
+       a.id, a.session_id, a.name, a.type, a.created_at, a.updated_at,
+       v.id          AS version_id,
+       v.version_number,
+       v.content     AS version_content,
+       v.label       AS version_label,
+       v.created_at  AS version_created_at,
+       v.artifact_id AS version_artifact_id
+     FROM artifacts a
+     LEFT JOIN LATERAL (
+       SELECT *
+       FROM artifact_versions av
+       WHERE av.artifact_id = a.id
+       ORDER BY av.version_number DESC
+       LIMIT 1
+     ) v ON true
+     WHERE a.session_id = $1
+     ORDER BY a.created_at ASC`,
+    [sessionId]
+  );
 
-  return results;
+  return result.rows.map((row) => {
+    const artifact: Artifact = {
+      id: row.id,
+      name: row.name,
+      type: row.type,
+      session_id: row.session_id,
+      created_at: row.created_at,
+      updated_at: row.updated_at,
+    };
+
+    const current_version: ArtifactVersion | null = row.version_id
+      ? {
+          id: row.version_id,
+          label: row.version_label,
+          content: row.version_content,
+          created_at: row.version_created_at,
+          artifact_id: row.version_artifact_id,
+          version_number: row.version_number,
+        }
+      : null;
+
+    return { ...artifact, current_version };
+  });
 }

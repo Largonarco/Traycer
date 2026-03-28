@@ -1,6 +1,6 @@
 ---
 name: trigger
-description: "COMMAND: /trigger — Entry point for new workflows. Activated when the user sends a message starting with /trigger. Analyzes the user's incoming request, asks clarification questions to resolve ambiguities, and explores the codebase to gather context. This is the first step before any artifact creation. Use this skill whenever the user's message begins with /trigger."
+description: "COMMAND: /trigger — Entry point for new workflows. Activated when the user sends a message starting with /trigger. Analyzes the user's incoming request, analyzes the codebase context, asks clarification questions to resolve ambiguities. This is step 1 of 9 in the workflow, a fresh start. Use this skill whenever the user's message begins with /trigger."
 metadata:
   command: /trigger
   produces_artifact: false
@@ -10,6 +10,7 @@ metadata:
   next_command: /prd
 allowed-tools:
   - codebase-explorer
+  - ask_clarification_questions
 ---
 
 # Trigger — Analyze Request & Explore Codebase
@@ -62,11 +63,11 @@ If uncertainty remains after initial interview questions, present more interview
 
 &nbsp;
 
-## Output Format
+## Workflow Order Note
 
-<!-- TODO: Define the expected output format -->
+The command sequence (trigger → prd → flows → validate_prd → tech_plan → validate_architecture → ticket_breakdown → validate_artifact → revise_requirements) is the **intended** order, not a strict gate. The user is always in control — they can run any command at any time, skip steps, re-run earlier steps, or jump ahead. Always execute the requested command without complaint, then gently suggest the typical next step as a recommendation.
 
 ## Workflow Context
 
-- **Previous step:** None (entry point)
-- **Next step:** `/prd` — Generate Product Requirements Document
+- **Previous step:** None (recommended entry point)
+- **Next step:** `/prd` — Generate Product Requirements Document (recommended)

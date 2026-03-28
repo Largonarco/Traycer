@@ -29,8 +29,7 @@ type CommandDescriptor = NonNullable<ReturnType<typeof getCommand>>;
 type SessionRecord = NonNullable<Awaited<ReturnType<typeof getSessionById>>>;
 type AgentInstance = Awaited<ReturnType<typeof createCentralAgent>>["agent"];
 
-// Default Recursion Limit
-// Higher Limits
+// Default Recursion Limit - Higher Limits
 const DEFAULT_RECURSION_LIMIT = 10_000;
 
 /**
@@ -61,8 +60,11 @@ async function ensureArtifactForCommand(
 
   const artifactName = getArtifactNameForCommand(command.name);
   const existingArtifacts = await listArtifactsBySession(sessionId);
+
   let artifact = existingArtifacts.find(
     (a) => a.name === artifactName && a.type === command.artifactType
+  ) ?? existingArtifacts.find(
+    (a) => a.type === command.artifactType
   );
 
   const isNew = !artifact;

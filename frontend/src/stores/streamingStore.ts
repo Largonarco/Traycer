@@ -3,8 +3,17 @@ import { create } from 'zustand'
 // Module-level timer for throttled flushes — not stored in Zustand state
 let flushTimer: ReturnType<typeof setTimeout> | null = null
 
-// Module-level mutable buffer for O(1) appends (no copying)
+// Module-level mutable buffer for O(1) appends (no copying).
+// We maintain both the raw chunks array AND a running joined string so that
+// getBuffer() and the throttled flush never need to re-join from scratch.
 const bufferChunks: string[] = []
+
+// Tracks how many chunks have already been joined into `runningJoined`.
+// On each flush or getBuffer() call, we only join the NEW chunks since the
+// last join and concatenate them onto the running result — O(new chunks)
+// instead of O(all chunks).
+let joinedUpTo = 0
+let runningJoined = ''
 
 const FLUSH_INTERVAL_MS = 66 // ~15fps
 
@@ -31,6 +40,24 @@ function cancelPendingFlush() {
 
 function clearInternalBuffer() {
   bufferChunks.length = 0
+  joinedUpTo = 0
+  runningJoined = ''
+}
+
+/**
+ * Incrementally joins only the new chunks appended since the last call,
+ * then concatenates them onto the running result. This is O(new chunks)
+ * per call instead of O(all chunks) — a significant improvement for long
+ * streaming responses that accumulate hundreds of token chunks.
+ */
+function getJoinedBuffer(): string {
+  if (joinedUpTo < bufferChunks.length) {
+    // Only join the chunks we haven't processed yet
+    const newPart = bufferChunks.slice(joinedUpTo).join('')
+    runningJoined += newPart
+    joinedUpTo = bufferChunks.length
+  }
+  return runningJoined
 }
 
 export const useStreamingStore = create<StreamingStore>((set, get) => ({
@@ -50,8 +77,8 @@ export const useStreamingStore = create<StreamingStore>((set, get) => ({
     if (flushTimer === null) {
       flushTimer = setTimeout(() => {
         flushTimer = null
-        // Join and push to Zustand state so subscribers re-render
-        set({ streamBuffer: bufferChunks.join('') })
+        // Incrementally join only new chunks and push to Zustand state
+        set({ streamBuffer: getJoinedBuffer() })
       }, FLUSH_INTERVAL_MS)
     }
   },
@@ -73,6 +100,8 @@ export const useStreamingStore = create<StreamingStore>((set, get) => ({
     })
   },
 
-  // Always returns the latest content, even between throttled flushes
-  getBuffer: () => bufferChunks.join(''),
+  // Always returns the latest content, even between throttled flushes.
+  // Uses the same incremental join so repeated calls are O(1) when no
+  // new chunks have been appended.
+  getBuffer: () => getJoinedBuffer(),
 }))

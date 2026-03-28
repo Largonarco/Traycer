@@ -32,10 +32,8 @@ githubAuthRouter.get("/github", (_req, res) => {
     return;
   }
 
-  // Generate CSRF State Parameter
-  const state = randomBytes(32).toString("hex");
-
   // Store State (HttpOnly Cookie - 10 mins)
+  const state = randomBytes(32).toString("hex");
   res.cookie("oauth_state", state, {
     path: "/auth",
     maxAge: 600000,
@@ -169,7 +167,7 @@ githubAuthRouter.get("/github/callback", async (req, res) => {
       path: "/",
       httpOnly: true,
       sameSite: "lax",
-      maxAge: 15 * 60 * 1000, // 15 minutes (matches access token expiry)
+      maxAge: 15 * 60 * 1000, // 15 minutes
       secure: process.env.NODE_ENV === "production",
     });
 
