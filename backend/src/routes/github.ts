@@ -1,9 +1,9 @@
 import { Router } from "express";
 import { randomBytes, timingSafeEqual } from "node:crypto";
 import { upsertUser, getUserById } from "../db/index.js";
-import { createSessionToken, createRefreshToken, verifySessionToken } from "../utils/auth.js";
 import { encrypt, decrypt, deriveSecretForPurpose } from "../utils/crypto.js";
 import { getSettings, updateGitHubToken, clearGitHubToken } from "../db/index.js";
+import { createSessionToken, createRefreshToken, verifySessionToken } from "../utils/auth.js";
 
 export const githubAuthRouter = Router();
 
@@ -32,23 +32,24 @@ githubAuthRouter.get("/github", (_req, res) => {
     return;
   }
 
-  // Generate CSRF state parameter
+  // Generate CSRF State Parameter
   const state = randomBytes(32).toString("hex");
 
-  // Store state in a short-lived HttpOnly cookie (10 minutes)
+  // Store State (HttpOnly Cookie - 10 mins)
   res.cookie("oauth_state", state, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    maxAge: 600000,
     path: "/auth",
+    maxAge: 600000,
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+
   });
 
   const params = new URLSearchParams({
-    client_id: clientId,
-    scope: "repo read:org user:email",
-    redirect_uri: redirectUri,
     state,
+    client_id: clientId,
+    redirect_uri: redirectUri,
+    scope: "repo read:org user:email",
   });
 
   const githubAuthUrl = `https://github.com/login/oauth/authorize?${params.toString()}`;
@@ -68,13 +69,13 @@ githubAuthRouter.get("/github", (_req, res) => {
  */
 githubAuthRouter.get("/github/callback", async (req, res) => {
   const code = req.query.code as string | undefined;
-  const callbackState = req.query.state as string | undefined;
-  const cookieState = req.cookies?.oauth_state as string | undefined;
   const clientId = process.env.GITHUB_CLIENT_ID || "";
   const redirectUri = process.env.GITHUB_REDIRECT_URI || "";
   const clientSecret = process.env.GITHUB_CLIENT_SECRET || "";
+  const callbackState = req.query.state as string | undefined;
+  const cookieState = req.cookies?.oauth_state as string | undefined;
 
-  // Always clear the OAuth state cookie
+  // Always Clear OAuth State Cookie
   res.clearCookie("oauth_state", { path: "/auth" });
 
   // Validate CSRF state parameter
@@ -83,14 +84,13 @@ githubAuthRouter.get("/github/callback", async (req, res) => {
     return;
   }
 
-  // Timing-safe comparison of state values
+  // Timing Safe Comparison of State Values
   const stateBuffer = Buffer.from(callbackState);
   const cookieBuffer = Buffer.from(cookieState);
   if (stateBuffer.length !== cookieBuffer.length || !timingSafeEqual(stateBuffer, cookieBuffer)) {
     res.status(403).json({ error: "OAuth state mismatch — possible CSRF attack" });
     return;
   }
-
   if (!code) {
     res.status(400).json({ error: "Missing authorization code" });
     return;
@@ -105,9 +105,9 @@ githubAuthRouter.get("/github/callback", async (req, res) => {
         Accept: "application/json",
       },
       body: JSON.stringify({
+        code,
         client_id: clientId,
         client_secret: clientSecret,
-        code,
         redirect_uri: redirectUri,
       }),
     });
@@ -166,19 +166,19 @@ githubAuthRouter.get("/github/callback", async (req, res) => {
     const refreshToken = createRefreshToken(user.id);
 
     res.cookie("traycer_session", sessionToken, {
+      path: "/",
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
       maxAge: 15 * 60 * 1000, // 15 minutes (matches access token expiry)
-      path: "/",
+      secure: process.env.NODE_ENV === "production",
     });
 
     res.cookie("traycer_refresh", refreshToken, {
+      path: "/",
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
       maxAge: 90 * 24 * 60 * 60 * 1000, // 90 days
-      path: "/",
+      secure: process.env.NODE_ENV === "production",
     });
 
     // Redirect WITHOUT token in URL
@@ -210,7 +210,7 @@ githubAuthRouter.post("/refresh", async (req, res) => {
     return;
   }
 
-  // Verify user still exists
+  // Verify User Exists
   const user = await getUserById(payload.sub);
   if (!user) {
     res.clearCookie("traycer_session", { path: "/" });
@@ -219,14 +219,14 @@ githubAuthRouter.post("/refresh", async (req, res) => {
     return;
   }
 
-  // Issue new access token
+  // Issue New Access Token
   const newAccessToken = createSessionToken(payload.sub);
   res.cookie("traycer_session", newAccessToken, {
+    path: "/",
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
     maxAge: 15 * 60 * 1000,
-    path: "/",
+    secure: process.env.NODE_ENV === "production",
   });
 
   res.json({ ok: true });

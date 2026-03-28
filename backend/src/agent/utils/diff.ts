@@ -63,7 +63,7 @@ export async function applyDiffs(input: DiffApplicatorInput): Promise<DiffApplic
     };
   }
 
-  // Apply Pathes Sequentially (Validate All & Commit)
+  // Apply Patches Sequentially (Validate All & Commit)
   let content = currentVersion.content;
 
   for (let i = 0; i < patches.length; i++) {

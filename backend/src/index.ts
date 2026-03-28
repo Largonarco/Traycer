@@ -43,7 +43,7 @@ app.use(createHelmetMiddleware());
 app.use(express.json());
 app.use(cookieParser());
 
-// ─── Public Routes (no authentication required) ─────────────────────────────
+// ─── Public Routes ─────────────────────────────
 app.get("/api/health", async (_req, res) => {
   const checks: Record<string, { status: string; latency_ms?: number; error?: string }> = {};
 
@@ -60,9 +60,9 @@ app.get("/api/health", async (_req, res) => {
   const allHealthy = Object.values(checks).every((c) => c.status === "ok");
 
   res.status(allHealthy ? 200 : 503).json({
-    status: allHealthy ? "healthy" : "degraded",
-    timestamp: new Date().toISOString(),
     checks,
+    timestamp: new Date().toISOString(),
+    status: allHealthy ? "healthy" : "degraded",
   });
 });
 app.use("/auth", githubAuthRouter);
@@ -70,22 +70,22 @@ app.use("/auth", githubAuthRouter);
 // ─── Protected Routes ───────────────────────────────────────────────────────
 app.use("/api", requireAuth);
 
-app.get("/api/auth/me", (req, res) => {
-  const user = req.user!;
-  res.json({
-    id: user.id,
-    github_login: user.github_login,
-    github_avatar_url: user.github_avatar_url,
-    display_name: user.display_name,
-    email: user.email,
-  });
-});
 app.use("/api/sessions", chatRouter);
 app.use("/api/sessions", sessionRouter);
 app.use("/api/github", githubApiRouter);
 app.use("/api/settings", settingsRouter);
 app.use("/api/artifacts", artifactRouter);
 app.use("/api/maintenance", maintenanceRouter);
+app.get("/api/auth/me", (req, res) => {
+  const user = req.user!;
+  res.json({
+    id: user.id,
+    email: user.email,
+    github_login: user.github_login,
+    github_avatar_url: user.github_avatar_url,
+    display_name: user.display_name,
+  });
+});
 
 // ─── Middleware - Error Handler ───────────────────────────────────────────────────
 app.use(globalErrorHandler);
@@ -102,7 +102,7 @@ async function shutdown() {
   // Stop Accepting New Connections
   server.close(async () => {
     console.log("HTTP server closed.");
-    // Then close DB pool
+    // Close DB Pool
     await closeAll();
     console.log("Database pool closed.");
     process.exit(0);

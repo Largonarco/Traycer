@@ -28,8 +28,8 @@ export function getTokenSecret(): string {
 export function createSessionToken(userId: string): string {
   const payload = {
     sub: userId,
-    exp: Date.now() + ACCESS_TOKEN_EXPIRY_MS,
     type: "access",
+    exp: Date.now() + ACCESS_TOKEN_EXPIRY_MS,
   };
 
   const payloadStr = Buffer.from(JSON.stringify(payload)).toString("base64url");
@@ -46,8 +46,8 @@ export function createSessionToken(userId: string): string {
 export function createRefreshToken(userId: string): string {
   const payload = {
     sub: userId,
-    exp: Date.now() + REFRESH_TOKEN_EXPIRY_MS,
     type: "refresh",
+    exp: Date.now() + REFRESH_TOKEN_EXPIRY_MS,
   };
 
   const payloadStr = Buffer.from(JSON.stringify(payload)).toString("base64url");
@@ -73,7 +73,7 @@ export function verifySessionToken(
     .update(payloadStr)
     .digest("base64url");
 
-  // Constant-time Comparison
+  // Constant Time Comparison
   if (signature.length !== expectedSig.length) return null;
   if (!timingSafeEqual(Buffer.from(signature), Buffer.from(expectedSig)))
     return null;

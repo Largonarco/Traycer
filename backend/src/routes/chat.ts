@@ -59,7 +59,7 @@ router.post("/:id/chat", async (req: Request, res: Response) => {
     activeCommand?: string | null;
   };
 
-  // Pre-SSE validation (can return JSON errors)
+  // Pre-SSE validation
   let session: Awaited<ReturnType<typeof getSessionById>>;
   let provider: "openai" | "anthropic", apiKey: string, githubToken: string | null;
   try {
@@ -161,7 +161,6 @@ router.post("/:id/chat", async (req: Request, res: Response) => {
         const lastCommand = findLastCommandFromHistory(allMessages.map((m) => m.content));
         activeCommand = lastCommand ? getCommand(lastCommand) : getCommand("/trigger");
       }
-
       if (!activeCommand) {
         sendSSEError(res, "stream_failed", "Could not determine active command for resume");
         res.end();

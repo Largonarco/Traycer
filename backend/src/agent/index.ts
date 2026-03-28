@@ -14,7 +14,7 @@ import { createExplorationSubAgent } from "./subagents/codeExploration.js";
 import type { BaseChatModel } from "@langchain/core/language_models/chat_models";
 
 
-// ─── FileData type (deepagents state backend format) ────────────────────────
+// ─── FileData type ────────────────────────
 export interface FileData {
   content: string[];
   created_at: string;
