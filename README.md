@@ -225,18 +225,3 @@ Authenticated requests: 5,000/hr. Code search: 30 req/min. When rate limit press
 ### Always reads from default branch
 No branch selection — the exploration sub-agent always uses the repository's default branch. This keeps the session model simple (one `github_repo` string per session) but means the agent can't explore feature branches or compare across branches.
 
-### No automated tests
-Verification is manual via the seed script (`npm run seed -w backend`) which exercises all DB helpers, and via end-to-end usage through the UI. The seed script validates schema, CRUD operations, cascade deletes, and settings storage flows.
-
----
-
-## Known Limitations
-
-- **No local filesystem access** — codebase exploration is GitHub API only; local repos must be pushed to GitHub first.
-- **No mobile layout** — the resizable two-panel design targets desktop viewports.
-- **No real-time collaboration** — sessions are single-owner; no shared editing or multi-user presence within a session.
-- **No branch selection** — always reads the default branch; cannot explore feature branches.
-- **GitHub code search rate limit** — 30 req/min can throttle heavy exploration; the sub-agent degrades gracefully but context may be incomplete.
-- **Large file truncation** — files over 50,000 characters are truncated when read via the GitHub API to avoid context bloat.
-- **No key rotation** — changing `ENCRYPTION_SECRET` invalidates all stored secrets.
-- **JWT is stateless** — signing out clears the token client-side but doesn't invalidate it server-side; tokens expire after 15 minutes (access) / 90 days (refresh).
