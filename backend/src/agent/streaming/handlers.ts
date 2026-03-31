@@ -61,16 +61,11 @@ async function ensureArtifactForCommand(
   const artifactName = getArtifactNameForCommand(command.name);
   const existingArtifacts = await listArtifactsBySession(sessionId);
 
-  let artifact = existingArtifacts.find(
+  const artifact = existingArtifacts.find(
     (a) => a.name === artifactName && a.type === command.artifactType
-  ) ?? existingArtifacts.find(
-    (a) => a.type === command.artifactType
-  );
+  ) ?? await createArtifact(sessionId, artifactName, command.artifactType);
 
-  const isNew = !artifact;
-  if (!artifact) {
-    artifact = await createArtifact(sessionId, artifactName, command.artifactType);
-  }
+  const isNew = !existingArtifacts.some((a) => a.id === artifact.id);
 
   // Notify FE - Artifact Streaming Starts
   sendSSE(res, "artifact:start", {
@@ -336,32 +331,27 @@ async function finalizeStreamResult(
 
   // Handle Artifact Generation
   // The artifact was eagerly created by ensureArtifactForCommand() before
-  // streaming began (so the frontend could enter streaming mode). Here we
-  // just create the version with the streamed content.
-  if (command.producesArtifact && tokenBuffer.length > 0) {
-    const artifact = preCreatedArtifact ?? await (async () => {
-      // Fallback: if ensureArtifactForCommand wasn't called (shouldn't happen),
-      // create the artifact now.
-      const artifactName = getArtifactNameForCommand(command.name);
-      const existingArtifacts = await listArtifactsBySession(sessionId);
-      const existing = existingArtifacts.find(
-        (a) => a.name === artifactName && a.type === command.artifactType
-      );
-      return existing ?? await createArtifact(sessionId, artifactName, command.artifactType!);
-    })();
-
-    // Determine label: if the artifact had no versions before this stream,
-    // it's "AI generated"; otherwise it's "AI updated".
-    const existingVersion = await getCurrentVersion(artifact.id);
-    const label = existingVersion ? "AI updated" : "AI generated";
-    const version = await createArtifactVersion(artifact.id, tokenBuffer, label);
+  // streaming began. The artifact-editor subagent is responsible for writing
+  // the actual content directly to the DB via write_artifact/apply_diff.
+  //
+  // We must NOT write tokenBuffer into the artifact here — tokenBuffer holds
+  // the central agent's conversational synthesis text (e.g. "The PRD has been
+  // created successfully..."), not the artifact content. Writing it would
+  // overwrite the correct content the subagent already committed.
+  //
+  // Instead, read the current version the subagent wrote from the DB and use
+  // its version number in the `done` event so the frontend can open the right
+  // version. The tokenBuffer is emitted as a normal conversational `token`
+  // stream and becomes the assistant chat message — it never touches the artifact.
+  if (command.producesArtifact && preCreatedArtifact) {
+    const currentVersion = await getCurrentVersion(preCreatedArtifact.id);
 
     const nextCmd = getNextCommand(command.name);
 
     sendSSE(res, "done", {
       nextCommand: nextCmd,
-      artifactId: artifact.id,
-      versionNumber: version.version_number,
+      artifactId: preCreatedArtifact.id,
+      versionNumber: currentVersion?.version_number ?? null,
     });
 
     if (!res.writableEnded) res.end();

@@ -222,12 +222,18 @@ function createWriteArtifactTool(sessionId: string) {
         "Write the FULL content of an artifact, creating a new version. " +
         "This completely replaces the previous content. " +
         "Use this for initial artifact creation or when changes are too extensive for diff patching. " +
-        "For targeted edits, prefer apply_diff instead.",
+        "For targeted edits, prefer apply_diff instead. " +
+        "CRITICAL: The `content` argument MUST be the actual artifact content only — " +
+        "never your own conversational text, summaries, confirmations, or status messages. " +
+        "If you want to report what you did, do it in plain text AFTER the tool call, never inside it.",
       schema: z.object({
         artifactId: z.string().describe("ID of the artifact to write to."),
         content: z
           .string()
-          .describe("The complete new content for the artifact."),
+          .describe(
+            "The complete new content for the artifact. " +
+            "Must be pure artifact content — NOT conversational text, summaries, or status messages."
+          ),
       }),
     }
   );
@@ -315,27 +321,40 @@ When constructing search strings for apply_diff:
 - When in doubt, include MORE context in the search string rather than less
 - Keep each patch focused — one logical change per patch when possible
 
-### Step 3: Verify
-After applying edits, ALWAYS read the artifact again to verify:
-- The changes were applied in the correct location
-- The surrounding content was not corrupted
-- The overall document structure is intact
-- No unintended side effects occurred
+### Step 3: Verify — MANDATORY, NO EXCEPTIONS
+Immediately after every single edit tool call (\`write_artifact\` or \`apply_diff\`), you MUST call \`read_artifact\` on the same artifact before doing anything else — including responding, reporting results, or moving on to the next edit. There are no exceptions. An edit that is not followed by a verification read is an incomplete, invalid edit.
+
+Read the artifact back and answer every question in this checklist before proceeding:
+
+**Content sanity** (most important — check this first):
+- Does the artifact content look like a real document (PRD, Core Flows, Tech Plan, ticket, etc.)?
+- Is the very first line actual artifact content, not a sentence like "I have successfully written..." or "The artifact now contains..."?
+- Are there any conversational phrases, status messages, confirmations, or meta-commentary anywhere in the content? If yes, this is a critical failure — the artifact has been poisoned with conversational text and must be corrected immediately.
+
+**Edit correctness**:
+- Were the intended changes applied in the correct location?
+- Was the surrounding content left intact and uncorrupted?
+- Is the overall document structure (headings, sections, formatting) still sound?
+- Were there any unintended side effects elsewhere in the document?
 
 ### Step 4: Fix (if needed)
-If verification reveals problems:
-- Read the artifact again to get the current exact content
-- Construct new patches based on the actual current content
-- Apply corrective patches
-- Verify again
-- Repeat until the artifact is correct
+If verification reveals ANY problem — especially conversational text in the artifact content:
+- Do NOT report success. Do NOT respond to the user yet.
+- Read the artifact to get the current exact content.
+- Construct corrective patches or a full rewrite that removes the problem and restores correct artifact content.
+- Apply the fix.
+- Immediately verify again by reading the artifact.
+- Repeat the fix → verify loop until the full checklist from Step 3 passes cleanly.
+- Only after a clean verification may you report results.
 
 ## Rules
 
 1. **Never skip the read step.** You need the exact content and version number.
-2. **Never skip the verify step.** Always confirm your edits landed correctly.
+2. **Never skip the verify step — it is a hard gate.** Every single edit tool call (\`write_artifact\` or \`apply_diff\`) must be immediately followed by a \`read_artifact\` call on the same artifact. No exceptions. You may not respond, report, or proceed to a next edit until you have read the artifact back and confirmed the full verification checklist in Step 3 passes. Skipping or deferring verification is not allowed under any circumstances.
 3. **Be precise with search strings.** The #1 cause of failed patches is imprecise search strings. Copy them exactly from the read output.
 4. **Handle failures gracefully.** If a patch fails, read the artifact again, understand what went wrong, and retry with corrected search strings.
 5. **Preserve document structure.** When editing, maintain the overall formatting, heading hierarchy, and organizational structure of the artifact.
 6. **Make only the requested changes.** Do not introduce unrelated modifications, style changes, or reorganization unless explicitly asked.
-7. **Report your results.** After successful editing and verification, briefly summarize what was changed.`;
+7. **Report your results.** After the artifact is verified correct, write a brief plain-text summary of what was changed — in your response message, NOT as a tool call.
+8. **NEVER write conversational text into an artifact.** The \`content\` argument of \`write_artifact\` and the \`replace\` strings of \`apply_diff\` must contain ONLY real artifact content. Your own confirmations, summaries, status updates, or explanations must NEVER be passed as artifact content. If you catch yourself about to write something like "I have successfully written..." or "The artifact now contains..." into a tool argument, STOP — put that text in your response message instead.
+9. **One write per editing task.** Call \`write_artifact\` exactly once to commit the content, then switch to \`read_artifact\` for verification. Never call \`write_artifact\` a second time to "confirm" or "finalize" — verification is done by reading, not by writing again.`;
